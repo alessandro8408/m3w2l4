@@ -1,0 +1,45 @@
+push		ebp															; salvo il base pointer della funzione corrente
+																				; mi sto preparando per chiamare una funzione. utilizzerò questo
+																				; valore per tornare alla funzione chiamante al termine di quella chiamata
+mov			ebp, esp												; sovrascrivo il puntatore alla base dello stack con quello
+																				; alla cima. in questo modo posso accedere a parametri e variabili
+																				; locali della funzione chiamata
+push 		ecx															; parametro della funzione
+push 		0																; parametro della funzione	`lpdwFlags`
+push		0																; parametro della funzione	`dwReserved`
+																				; le istruzioni sopra hanno preparato lo stack per la chiamata di funzione
+call		ds:InternetGetConnectedState		;	chiamo la funzione
+mov			[ebp+var_4],	eax								; assegno a `var_4` il valore di `eax` (più precisamente, lo assegno nella zona dello stack
+																				;	con indirizzo `ebp+var_4`)
+cmp			[ebp+var_4],	0									; modifico `CF` e `ZF` a seconda della relazione d'ordine tra i due
+jz			short	loc_40102B								; piccolo salto verso `loc_40102B` se `ZF` vale 1
+push		offset aSuccessInterne					; indirizzo stringa "Success: Internet Connection\n" parametro di funzione
+call 		sub_40105F											;	chiamo una funzione/subroutine
+add			esp, 4													; sommo 4 al registro che punta alla cima dello stack sovrascrivendolo:
+																				; `esp` torna al valore di prima di `call` (1 indirizzo = 32 bit = 4 byte)
+mov			eax, 1													; assegno il valore 1 a `eax`
+jmp			short loc_40103A								; piccolo salto incondizionato verso `loc_40103A`
+
+var_4	= InternetGetConnectedState(0, 0, ecx);
+if (var_4 == 0) {
+	// codice non incluso a indirizzo 40102B
+}
+else {
+	sub_40105F(aSuccessInterne);
+	// codice non incluso (come sopra)
+}
+
+oppure
+var_4	= InternetGetConnectedState(0, 0, ecx);
+if (var_4 == 1) {
+	sub_40105F(aSuccessInterne);
+	// codice non incluso
+}
+// codice non incluso ad indirizzo 40102B
+
+a seconda di quello che avviene nella porzione di codice non presente
+
+dal momento che viene passata una stringa come parametro alla subroutine posso dedurre che tale subroutine
+svolga il compito di scrivere a schermo tale stringa
+
+`InternetGetConnectedState` assume un valore diverso da 0 se la macchina ha accesso ad internet.
